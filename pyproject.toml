@@ -1,0 +1,71 @@
+[project]
+name = "intercrop-planner"
+version = "0.0.1"
+description = "Conversational intercropping planner: lays a management grid over a field and optimises layout to reduce pesticide applications."
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "pydantic>=2.11",
+    "shapely>=2.1",
+    "pyproj>=3.7",
+    "numpy>=2.2",
+]
+
+[project.optional-dependencies]
+# Phase 2. Declared now only so we know the wheel exists for our interpreter.
+solver = ["ortools>=9.12"]
+# Phase 0 checkpoint renders + Phase 4 raster generation.
+viz = ["matplotlib>=3.10"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "ruff>=0.9",
+    "mypy>=1.15",
+    "hypothesis>=6.125",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/intercrop"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+    "slow: scale/solve-time benchmarks; run in CI but excluded from the fast loop",
+    "golden: agronomic golden cases that must not silently change",
+]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "N", "RUF"]
+ignore = [
+    # Exception names here are sentences, and read better at the raise site than an
+    # -Error suffix would: `raise ApprovalDenied(...)`, `raise StaleProposal(...)`,
+    # `raise OutOfValidityRange(...)`.
+    "N818",
+    # `Field_` is deliberate: `pydantic.Field` owns the short name, and shadowing it inside
+    # the domain models would be worse than the trailing underscore.
+    "N801",
+    # PEP 695 `class Sourced[T]` is not used: the classic Generic/TypeVar spelling is what
+    # mypy --strict and the pydantic plugin handle most predictably today.
+    "UP046",
+    # En dashes and similar appear in prose docstrings, where they are correct typography
+    # rather than a homoglyph mistake.
+    "RUF001",
+]
+
+[tool.mypy]
+python_version = "3.13"
+packages = ["intercrop"]
+mypy_path = "src"
+strict = true
+plugins = ["pydantic.mypy"]

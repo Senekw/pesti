@@ -1,0 +1,234 @@
+#
+# Agronomic parameter set v0.1.0
+#
+# READ THIS BEFORE USING ANY NUMBER BELOW.
+#
+# Every entry in this file is PROVISIONAL. Nothing here has been sourced against the
+# literature yet, and that is deliberate for Phase 0: the schema is what is being
+# demonstrated, not the agronomy. The values are structurally valid placeholders that exist
+# so the grid generator, the loader, the hashing, and the provenance tests have something to
+# operate on.
+#
+# Consequences, which the code enforces rather than trusts:
+#   * ParameterRecord rejects PUBLISHED status without a citation, so nothing here can be
+#     quietly promoted by editing a number.
+#   * ParameterSet.provisional_keys lists every one of these, and any output touching one
+#     must be labelled provisional wherever it is shown.
+#   * A plan built on this set is a demonstration of mechanism, not agronomic advice.
+#
+# Phase 1 replaces these with sourced values. Until it does, the honest answer to
+# "how many sprays will this save" is that we cannot yet say.
+#
+
+[meta]
+version = "0.1.0"
+description = "Phase 0 skeleton. All entries provisional and unsourced; see header."
+maintainer = "unassigned"
+
+
+# ======================================================================================
+# Pest phenology
+# ======================================================================================
+
+[[parameter]]
+key = "pest.myzus_persicae.gdd.base_temp_c"
+value = 4.3
+units = "degC"
+status = "provisional"
+provisional_rationale = """
+Placeholder lower development threshold for green peach aphid. Values in this vicinity are
+commonly quoted for aphid development, but this specific figure has not been traced to a
+source and the method it was fitted with is unknown. Replaced by a base temperature from a
+development-rate study reporting the fitting method and the temperature range tested.
+"""
+[parameter.validity]
+geographic_scope = ["global"]
+notes = "Development thresholds are usually population-specific; a single global value is itself a simplification to be checked."
+
+[[parameter]]
+key = "pest.myzus_persicae.gdd.method"
+value = "single_sine"
+status = "provisional"
+provisional_rationale = """
+Accumulation method must match whatever the source used to fit the base temperature.
+Recorded as a parameter rather than hardcoded so the two cannot drift apart.
+"""
+
+[[parameter]]
+key = "pest.myzus_persicae.economic_threshold"
+value = "UNSOURCED - do not present"
+status = "provisional"
+provisional_rationale = """
+Deliberately a non-numeric sentinel. An action threshold is region- and crop-specific and
+must come from local extension guidance including its sample unit. A placeholder number here
+would be worse than an absence, because it would look actionable. Phase 1 sources this per
+target region, and until then the action plan must cite local guidance instead.
+"""
+
+[[parameter]]
+key = "pest.helicoverpa_armigera.gdd.base_temp_c"
+value = 11.0
+units = "degC"
+status = "provisional"
+provisional_rationale = """
+Placeholder for tomato fruit borer, the pest that plausibly drives spray count on Punjab
+tomato far more than aphids do. Unsourced. Its presence here is a reminder that the
+garlic/tomato aphid story may not be the binding constraint on the brief's own worked
+example - see the Phase 0 checkpoint note.
+"""
+
+
+# ======================================================================================
+# Crop development
+# ======================================================================================
+
+[[parameter]]
+key = "crop.tomato.gdd.base_temp_c"
+value = 10.0
+units = "degC"
+status = "provisional"
+provisional_rationale = """
+Placeholder crop base temperature. Distinct from any pest base temperature and must stay
+distinct - conflating the two is a silent phenology error the code cannot detect.
+"""
+
+[[parameter]]
+key = "crop.garlic.gdd.base_temp_c"
+value = 0.0
+units = "degC"
+status = "provisional"
+provisional_rationale = """
+Placeholder. Garlic is vernalisation-driven as much as heat-driven, so a plain degree-day
+model may be the wrong shape for it entirely. Flagged as a modelling question for Phase 1,
+not just a missing number.
+"""
+
+
+# ======================================================================================
+# Regional calendars
+# ======================================================================================
+
+[[parameter]]
+key = "region.in_pb.last_frost_doy"
+value = 45
+units = "day_of_year"
+status = "provisional"
+provisional_rationale = """
+Placeholder mid-February last-frost date for Punjab. Must be replaced with a percentile date
+from a named normals dataset and period - a mean last-frost date is the wrong statistic for
+planting decisions, since planting to the mean means losing the crop half the time. Phase 1
+should record a 10% exceedance date and say so.
+"""
+[parameter.validity]
+geographic_scope = ["IN-PB"]
+
+[[parameter]]
+key = "region.in_pb.first_frost_doy"
+value = 340
+units = "day_of_year"
+status = "provisional"
+provisional_rationale = "Placeholder early-December first-frost date for Punjab. Unsourced."
+[parameter.validity]
+geographic_scope = ["IN-PB"]
+
+
+# ======================================================================================
+# Interactions
+# ======================================================================================
+#
+# The worked example from the brief. Note the choices made here even at placeholder stage,
+# because they encode the honest shape of the evidence:
+#
+#   * ThresholdKernel, not exponential. Intercropping trials typically compare
+#     "interplanted" against "monoculture" at one spacing. That is a single point, and a
+#     threshold kernel claims an effect at the spacing tested without inventing a curve
+#     through it. An exponential's long tail would credit protection metres away that
+#     nobody measured, and summed over 100 ha that fabricates a spray reduction.
+#   * requires_co_occupancy = true with a nonzero establishment lag and zero persistence
+#     after removal. This is what makes lifting the garlic in June correctly remove
+#     protection in July.
+#   * PROPORTIONAL_REDUCTION on colonisation, not on damage and not on spray count. The
+#     step from "fewer colonising aphids" to "one fewer application" needs the economic
+#     threshold, which is deliberately unsourced above.
+
+[[interaction]]
+key = "garlic>tomato:myzus_persicae:repellency"
+source_crop_slug = "garlic"
+target_crop_slug = "tomato"
+pest_slug = "myzus_persicae"
+mechanism = "repellency"
+effect_size = 0.30
+effect_measure = "proportional_reduction"
+measured_at_distance_m = 1.0
+status = "provisional"
+provisional_rationale = """
+UNSOURCED PLACEHOLDER, and the single most consequential number in the system. Allium
+volatile suppression of aphid colonisation on neighbouring crops is a real and repeatedly
+reported phenomenon, but the effect size, the spacing it holds at, and whether it persists at
+field scale rather than plot scale are all open here. Phase 1 must source this from trials
+reporting the arrangement tested, and should expect the field-scale effect to be smaller than
+plot-scale results suggest.
+"""
+[interaction.kernel]
+form = "threshold"
+radius_m = 1.5
+[interaction.temporal]
+requires_co_occupancy = true
+min_overlap_days = 21
+effect_persists_after_removal_days = 0
+[interaction.validity]
+geographic_scope = ["global"]
+cropping_system = ["open_field"]
+notes = "Unvalidated. Scope is written as global only because no measured envelope is on file to narrow it to."
+[interaction.validity.numeric_bounds]
+row_spacing_m = [0.5, 2.0]
+
+[[interaction]]
+key = "garlic>bean:allelopathy"
+source_crop_slug = "garlic"
+target_crop_slug = "bean"
+mechanism = "allelopathy"
+effect_size = -0.20
+effect_measure = "proportional_reduction"
+status = "provisional"
+provisional_rationale = """
+Placeholder magnitude for allium suppression of legumes. The magnitude is unsourced, but the
+*direction* is well established and that is what the hard validator needs: this entry exists
+so the allelopathy check rejects an allium/legume adjacency regardless of what the optimizer
+would prefer. A hard rejection does not depend on the effect size being accurate.
+"""
+[interaction.kernel]
+form = "threshold"
+radius_m = 1.0
+[interaction.temporal]
+requires_co_occupancy = true
+effect_persists_after_removal_days = 30
+
+[[interaction]]
+key = "coriander>tomato:helicoverpa_armigera:natural_enemy_provisioning"
+source_crop_slug = "coriander"
+target_crop_slug = "tomato"
+pest_slug = "helicoverpa_armigera"
+mechanism = "natural_enemy_provisioning"
+effect_size = 0.15
+effect_measure = "proportional_reduction"
+measured_at_distance_m = 10.0
+status = "provisional"
+provisional_rationale = """
+UNSOURCED. Included at Phase 0 purely to exercise the requirement that natural-enemy
+provisioning stays in a separate term from repellency, with a much wider kernel. Whether
+coriander is the right insectary crop for Punjab tomato is a question for a local
+agronomist, not something to infer - and the brief lists crops beyond garlic and tomato as
+ask-first, so this must not reach a plan without approval.
+"""
+[interaction.kernel]
+form = "linear_taper"
+full_m = 15.0
+zero_m = 60.0
+[interaction.temporal]
+requires_co_occupancy = true
+min_overlap_days = 30
+effect_persists_after_removal_days = 7
+[interaction.validity]
+cropping_system = ["open_field"]
+notes = "Natural-enemy foraging ranges are much wider than volatile repellency ranges; the kernels must not be interchanged."

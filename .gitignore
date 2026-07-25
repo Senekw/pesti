@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+uv.lock
+
+# Generated renders. Regenerate with the scripts in scripts/; the checkpoint doc quotes the
+# numbers, so the images do not need to be under version control.
+out/
