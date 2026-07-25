@@ -1,33 +1,28 @@
 # Intercrop planner
 
-A grower describes their farm in plain language. The system asks for the few missing facts
-that actually move the answer, lays a management grid over the field, optimises an
-intercropping layout to reduce the number of pesticide applications needed over the season,
+**The goal.** A grower describes their farm in plain language. The system asks for the few
+missing facts that actually move the answer, lays a management grid over the field, optimises
+an intercropping layout to reduce the number of pesticide applications needed over the season,
 and returns a field map plus a dated action plan.
 
-**Phase 0 only. Stopped at the checkpoint for review.**
+**What is built.** Everything in that sentence except the optimiser. Phase 0 is the domain
+model, the geometry, and the evidence discipline: Pydantic v2 models, the grid generator, and
+a versioned agronomic parameter store, with a web demo over the three. No solver, no pressure
+model, no agent, no persistence — and the demo is built to make those absences visible rather
+than paper over them.
+
+```bash
+uv sync --all-extras
+python web/server.py        # the demo, on http://127.0.0.1:8765
+python -m pytest tests/ -q  # 156 tests
+```
+
+Python 3.13. Not 3.14 — OR-Tools has no wheel for it yet.
 
 - **[`docs/phase0-checkpoint.md`](docs/phase0-checkpoint.md)** — start here. The block-size
   recommendation and its evidence, every departure from the proposed entity list, the
   agronomic risks, and the open questions.
 - **[`docs/erd.md`](docs/erd.md)** — entity relationships, in four diagrams.
-
-## What exists
-
-Pydantic v2 domain models, the grid generator, a versioned agronomic parameter store, and a
-web demo over the three of them. No solver, no pressure model, no agent, no persistence.
-
-## Quick start
-
-```bash
-uv sync --all-extras
-python -m pytest tests/ -q                 # 156 tests
-python web/server.py                       # the demo, on http://127.0.0.1:8765
-python scripts/render_grid_examples.py     # -> out/grid_*.png
-python scripts/block_size_sweep.py         # -> out/block_size_sweep.png
-```
-
-Python 3.13. Not 3.14 — OR-Tools has no wheel for it yet.
 
 ## The demo
 
@@ -55,10 +50,19 @@ the field, tessellates it, applies a row-pattern rule per block and re-dates the
 `GET /api/parameters` backs the register at the bottom of the sheet: every entry, its status,
 and the reason it is not yet a source.
 
+### The other scripts
+
+```bash
+python scripts/render_grid_examples.py     # -> out/grid_*.png
+python scripts/block_size_sweep.py         # -> out/block_size_sweep.png
+python scripts/demo_tomato_crop.py         # the console walkthrough the sheet grew out of
+```
+
 ## Deploying
 
 Pushing to `main` deploys, once the repository is imported into Vercel (**New Project → import
-this repo → Deploy**; the defaults are correct, there is nothing to configure).
+this repo → Deploy**; the defaults are correct, there is nothing to configure). Put the
+production URL here when that is done.
 
 - [`api/index.py`](api/index.py) is the entry point — it re-exports the same
   `BaseHTTPRequestHandler` the local server uses, so local and deployed behaviour cannot
