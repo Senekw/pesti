@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intercrop — field sheet</title>
+<style>
+:root{
+  --table:#232620;      /* the desk the sheet lies on */
+  --sheet:#E8E3D3;      /* linen drafting stock */
+  --sheet-2:#DFD9C6;
+  --ink:#1B1D18;
+  --ink-soft:#5C5F52;
+  --rule:#C6C0AC;
+  --madder:#B4472C;     /* tomato */
+  --olive:#7C8B4E;      /* garlic */
+  --ochre:#D69A2C;      /* marigold */
+  --stamp:#A32E1F;
+  --display:"Avenir Next Condensed","Avenir Next","Helvetica Neue",sans-serif;
+  --prose:"Iowan Old Style","Charter",Palatino,Georgia,serif;
+  --data:"SF Mono",Menlo,ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--table);color:var(--ink)}
+body{font-family:var(--prose);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;letter-spacing:.01em}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--madder)}
+::selection{background:var(--ochre);color:var(--ink)}
+:focus-visible{outline:2px solid var(--madder);outline-offset:2px}
+
+.eyebrow{font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink-soft)}
+
+/* ---------- masthead ---------- */
+.masthead{max-width:1560px;margin:0 auto;padding:26px 28px 18px;color:var(--sheet);
+  display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+.masthead h1{font-size:34px;line-height:1;letter-spacing:.02em;text-transform:uppercase}
+.masthead h1 span{color:var(--ochre)}
+.masthead p{margin:6px 0 0;max-width:52ch;color:#B9B7A6;font-size:14px}
+.plate-no{font-family:var(--data);font-size:11px;color:#8C8F7F;text-align:right;line-height:1.7}
+.plate-no b{color:var(--sheet);font-weight:400}
+
+/* ---------- sheet ---------- */
+.sheet{max-width:1560px;margin:0 auto 40px;background:var(--sheet);
+  box-shadow:0 24px 60px rgba(0,0,0,.45);
+  display:grid;grid-template-columns:290px minmax(0,1fr) 340px}
+.col{padding:22px 22px 30px;min-width:0}
+.col+.col{border-left:1px solid var(--rule)}
+.col-plate{padding:22px 10px 24px;background:
+  repeating-linear-gradient(0deg,transparent 0 39px,rgba(0,0,0,.028) 39px 40px),
+  repeating-linear-gradient(90deg,transparent 0 39px,rgba(0,0,0,.028) 39px 40px)}
+
+/* ---------- controls ---------- */
+fieldset{border:0;padding:0;margin:0 0 22px}
+legend{padding:0 0 8px;width:100%;border-bottom:1px solid var(--rule);margin-bottom:12px}
+.field{display:flex;align-items:baseline;gap:10px;margin:0 0 9px}
+.field label{flex:1;font-size:13.5px;color:var(--ink-soft)}
+.field input[type=number],.field input[type=text]{width:88px;text-align:right;background:none;
+  border:0;border-bottom:1px solid var(--rule);font-family:var(--data);font-size:13px;
+  padding:2px 3px}
+.field input[type=text]{width:120px;text-align:left}
+.field input:hover{border-bottom-color:var(--ink)}
+.slider{margin:0 0 12px}
+.slider .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider .top span{font-size:13.5px;color:var(--ink-soft)}
+.slider .top b{font-family:var(--data);font-size:13px;font-weight:400}
+.slider input{width:100%;margin:4px 0 0;accent-color:var(--madder)}
+.seg{display:flex;border:1px solid var(--rule);margin:2px 0 12px}
+.seg button{flex:1;background:none;border:0;padding:6px 4px;cursor:pointer;
+  font-family:var(--display);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-soft)}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--sheet)}
+.stack{display:flex;flex-direction:column;gap:0;border:1px solid var(--rule);margin:2px 0 10px}
+.stack button{text-align:left;background:none;border:0;padding:8px 10px;cursor:pointer}
+.stack button+button{border-top:1px solid var(--rule)}
+.stack button[aria-pressed=true]{background:var(--ink);color:var(--sheet)}
+.stack button[aria-pressed=true] em{color:#B9B7A6}
+.stack b{display:block;font-family:var(--display);font-size:13.5px;font-weight:600}
+.stack em{display:block;font-style:normal;font-size:12px;color:var(--ink-soft);line-height:1.35}
+.check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);
+  cursor:pointer;margin:2px 0 10px}
+.check input{accent-color:var(--madder)}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.presets button{background:none;border:1px solid var(--rule);padding:4px 9px;cursor:pointer;
+  font-family:var(--data);font-size:11px;color:var(--ink-soft)}
+.presets button:hover{border-color:var(--ink);color:var(--ink)}
+
+/* ---------- plate ---------- */
+.plate-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:0 12px 10px}
+.plate-head h2{font-size:15px;letter-spacing:.02em}
+.plate-head .meta{font-family:var(--data);font-size:11px;color:var(--ink-soft)}
+#plate{display:block;width:100%;height:auto;max-height:min(70vh,760px)}
+.blk{stroke:rgba(27,29,24,.55);stroke-width:.6;cursor:pointer}
+.blk.partial{stroke-dasharray:4 3}
+.overlay{pointer-events:none}
+.blk:hover{stroke:var(--ink);stroke-width:2}
+.blk.sel{stroke:var(--ink);stroke-width:2.4}
+.blk-code{font-family:var(--data);fill:rgba(27,29,24,.62);text-anchor:middle;
+  pointer-events:none;dominant-baseline:middle}
+.boundary{fill:none;stroke:var(--ink);stroke-width:2}
+.plantable{fill:none;stroke:rgba(27,29,24,.45);stroke-width:1;stroke-dasharray:7 5}
+.excl{fill:url(#hatch-excl);stroke:var(--ink);stroke-width:.8}
+@media (prefers-reduced-motion:no-preference){
+  .blk{animation:drawin .42s ease-out both}
+}
+@keyframes drawin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.legend{display:flex;flex-wrap:wrap;gap:14px;padding:12px 12px 0;font-size:12.5px;
+  color:var(--ink-soft);align-items:center}
+.legend i{display:inline-block;width:13px;height:13px;margin-right:6px;vertical-align:-2px;
+  border:1px solid rgba(27,29,24,.5)}
+#tooltip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:var(--sheet);
+  padding:7px 10px;font-family:var(--data);font-size:11.5px;line-height:1.6;opacity:0;
+  transition:opacity .1s;max-width:260px}
+#tooltip.on{opacity:1}
+
+/* the refusal, stamped */
+.stamp{position:relative;margin:16px 12px 0;border:2px solid var(--stamp);padding:12px 14px;
+  transform:rotate(-.5deg)}
+.stamp .eyebrow{color:var(--stamp)}
+.stamp p{margin:6px 0 0;font-size:13.5px;line-height:1.5}
+.stamp.err{background:rgba(163,46,31,.07)}
+.stamp.err p{font-family:var(--data);font-size:12.5px}
+
+/* ---------- read-out ---------- */
+.readout h3,.season h3{font-size:13px;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--ink-soft);border-bottom:1px solid var(--rule);padding-bottom:7px;margin:0 0 10px}
+.readout section{margin:0 0 24px}
+.season{padding:0 12px;margin:26px 0 0}
+.rows{font-family:var(--data);font-size:12.5px}
+.rows div{display:flex;justify-content:space-between;gap:10px;padding:3px 0;
+  border-bottom:1px dotted var(--rule)}
+.rows span{color:var(--ink-soft)}
+.rows b{font-weight:400;text-align:right}
+.note{font-size:12.5px;line-height:1.45;color:var(--ink-soft);margin:8px 0 0}
+.note code{font-family:var(--data);font-size:11px;word-break:break-all}
+.bar{margin:0 0 9px}
+.bar .lbl{display:flex;justify-content:space-between;font-family:var(--data);font-size:12px;
+  margin-bottom:3px}
+.bar .track{height:9px;background:var(--sheet-2)}
+.bar .fill{height:100%}
+
+/* season ribbon */
+.ribbon{margin-top:4px}
+.ribbon .months{display:flex;font-family:var(--data);font-size:9.5px;color:var(--ink-soft);
+  border-bottom:1px solid var(--rule);padding-bottom:2px;margin:0 0 6px 104px}
+.ribbon .months span{flex:1;text-align:center}
+.act{margin:0 0 7px;cursor:default}
+.act .row{display:flex;align-items:center;gap:8px}
+.act .name{font-family:var(--display);font-size:12px;text-transform:uppercase;
+  letter-spacing:.08em;width:96px;flex:none;color:var(--ink)}
+.act .track{position:relative;flex:1;height:12px;background:var(--sheet-2)}
+.act .win{position:absolute;top:0;bottom:0;background:var(--ink)}
+.act.advice .win{background:repeating-linear-gradient(45deg,var(--stamp) 0 3px,transparent 3px 6px),
+  rgba(163,46,31,.18);border:1px solid var(--stamp)}
+.act .when{font-family:var(--data);font-size:10.5px;color:var(--ink-soft);
+  margin:2px 0 0 104px}
+.act .why{font-size:12.5px;color:var(--ink-soft);margin:3px 0 0 104px;display:none}
+.act.open .why{display:block}
+.act button{all:unset;cursor:pointer;display:block;width:100%}
+
+/* ---------- register ---------- */
+.register{max-width:1560px;margin:0 auto 60px;background:var(--sheet);
+  box-shadow:0 24px 60px rgba(0,0,0,.45);padding:22px 28px 30px}
+.register-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:14px}
+.register table{width:100%;border-collapse:collapse;font-size:13px}
+.register th{text-align:left;font-family:var(--display);font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-soft);padding:0 10px 6px 0;font-weight:600}
+.register td{padding:7px 10px 7px 0;border-top:1px solid var(--rule);vertical-align:top}
+.register td.k,.register td.v{font-family:var(--data);font-size:12px}
+.register td.why{color:var(--ink-soft);font-size:12.5px;line-height:1.4;max-width:62ch}
+.tag{font-family:var(--display);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  border:1px solid var(--stamp);color:var(--stamp);padding:1px 6px;white-space:nowrap}
+.tag.ok{border-color:var(--olive);color:var(--olive)}
+.toggle{background:none;border:1px solid var(--rule);padding:4px 10px;cursor:pointer;
+  font-family:var(--data);font-size:11.5px;color:var(--ink-soft)}
+
+footer{max-width:1560px;margin:0 auto;padding:0 28px 50px;color:#8C8F7F;font-size:12.5px}
+
+@media (max-width:1180px){
+  .sheet{grid-template-columns:1fr}
+  .col+.col{border-left:0;border-top:1px solid var(--rule)}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div>
+    <div class="eyebrow" style="color:#8C8F7F">Intercrop planner · Phase 0</div>
+    <h1>The field <span>sheet</span></h1>
+    <p>Describe a parcel and the machinery that has to cross it. The grid generator lays
+       drivable management blocks over it, a layout rule fills them, and the season plan
+       comes back dated. What does not come back is a spray count — read the stamp.</p>
+  </div>
+  <div class="plate-no">
+    <div>SHEET <b id="sheet-no">01</b> · <b id="sheet-region">IN-PB</b></div>
+    <div>GENERATOR <b id="gen-ver">—</b></div>
+    <div>GRID HASH <b id="grid-hash">—</b></div>
+    <div style="margin-top:6px"><a href="/" style="color:#8C8F7F">home</a> ·
+      <a href="/chat" style="color:#8C8F7F">start over</a></div>
+  </div>
+</header>
+
+<main class="sheet">
+
+  <!-- ================= controls ================= -->
+  <div class="col">
+    <fieldset>
+      <legend class="eyebrow">The parcel</legend>
+      <div class="field"><label for="field_name">Sheet name</label>
+        <input type="text" id="field_name" value="Sheet 1"></div>
+      <div class="field"><label for="length_m">Length, m</label>
+        <input type="number" id="length_m" value="600" min="20" step="10"></div>
+      <div class="field"><label for="width_m">Width, m</label>
+        <input type="number" id="width_m" value="400" min="20" step="10"></div>
+      <div class="slider">
+        <div class="top"><span>Parcel bearing</span><b id="v-az">20°</b></div>
+        <input type="range" id="field_azimuth_deg" min="0" max="179" step="1" value="20">
+      </div>
+      <label class="check"><input type="checkbox" id="include_track">
+        Farm track crossing the parcel</label>
+      <div class="presets">
+        <button data-preset="punjab">Punjab tomato</button>
+        <button data-preset="strip">Long narrow strip</button>
+        <button data-preset="squeeze">Headland eats the field</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="eyebrow">The machinery</legend>
+      <div class="field"><label for="implement_width_m">Widest implement, m</label>
+        <input type="number" id="implement_width_m" value="1.8" min="0.5" step="0.1"></div>
+      <div class="slider">
+        <div class="top"><span>Block size asked for</span><b id="v-blk">50 m</b></div>
+        <input type="range" id="requested_block_size_m" min="10" max="200" step="1" value="50">
+      </div>
+      <div class="eyebrow" style="font-size:10px">Snap the block to whole passes</div>
+      <div class="seg" id="snap_policy" role="group">
+        <button data-v="nearest" aria-pressed="true">Nearest</button>
+        <button data-v="down" aria-pressed="false">Down</button>
+        <button data-v="up" aria-pressed="false">Up</button>
+      </div>
+      <div class="slider">
+        <div class="top"><span>Headland, × implement</span><b id="v-head">2.0×</b></div>
+        <input type="range" id="headland_multiple" min="0" max="8" step="0.5" value="2">
+      </div>
+      <div class="slider">
+        <div class="top"><span>Drop blocks under</span><b id="v-min">25%</b></div>
+        <input type="range" id="min_plantable_fraction" min="0.05" max="0.9" step="0.05" value="0.25">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="eyebrow">The layout</legend>
+      <div class="stack" id="layout" role="group">
+        <button data-v="solid" aria-pressed="false"><b>Tomato throughout</b>
+          <em>Every block solid. The baseline.</em></button>
+        <button data-v="bands" aria-pressed="false"><b>Garlic bands everywhere</b>
+          <em>Four tomato rows to two of garlic.</em></button>
+        <button data-v="trap_edge" aria-pressed="false"><b>Marigold on the edge</b>
+          <em>Trap perimeter where a block has an open side.</em></button>
+        <button data-v="trap_edge_bands_core" aria-pressed="true"><b>Marigold edge, garlic core</b>
+          <em>Both, split by where the block sits.</em></button>
+      </div>
+      <div class="field"><label for="season_year">Season</label>
+        <input type="number" id="season_year" value="2026" min="2024" max="2100" step="1"></div>
+    </fieldset>
+  </div>
+
+  <!-- ================= plate ================= -->
+  <div class="col col-plate">
+    <div class="plate-head">
+      <h2 id="plate-title">Sheet 1</h2>
+      <div class="meta" id="plate-meta">—</div>
+    </div>
+    <svg id="plate" viewBox="0 0 100 70" role="img" aria-label="Field plate">
+      <defs>
+        <pattern id="hatch-excl" width="6" height="6" patternUnits="userSpaceOnUse"
+                 patternTransform="rotate(45)">
+          <rect width="6" height="6" fill="#DFD9C6"></rect>
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#5C5F52" stroke-width="1.4"></line>
+        </pattern>
+      </defs>
+    </svg>
+    <div class="legend" id="legend"></div>
+    <div class="stamp" id="stamp">
+      <div class="eyebrow">Provisional · not agronomic advice</div>
+      <p id="stamp-body">—</p>
+    </div>
+
+    <section class="season">
+      <h3>The season, dated</h3>
+      <div class="ribbon">
+        <div class="months" id="months"></div>
+        <div id="plan"></div>
+      </div>
+      <p class="note">Hatched bar: advisory, never a prescription. Open a row for the reason
+        that date was chosen and the parameters it leans on.</p>
+    </section>
+  </div>
+
+  <!-- ================= read-out ================= -->
+  <div class="col readout">
+    <section>
+      <h3>What the grid costs you</h3>
+      <div class="rows" id="grid-rows"></div>
+      <p class="note" id="snap-note"></p>
+    </section>
+
+    <section>
+      <h3>Area by crop</h3>
+      <div id="areas"></div>
+      <p class="note" id="layout-note"></p>
+    </section>
+
+    <section>
+      <h3>Block picked</h3>
+      <div class="rows" id="block-rows"><div><span>none yet</span><b>tap a block</b></div></div>
+    </section>
+
+    <section>
+      <h3>Where this came from</h3>
+      <div class="rows" id="prov-rows"></div>
+      <p class="note" id="prov-keys"></p>
+    </section>
+  </div>
+</main>
+
+<section class="register">
+  <div class="register-head">
+    <div>
+      <div class="eyebrow">Parameter register</div>
+      <h2 style="font-size:20px" id="reg-title">—</h2>
+    </div>
+    <button class="toggle" id="reg-toggle" aria-expanded="false">Show the register</button>
+  </div>
+  <div id="reg-body" hidden></div>
+  <p class="note" id="reg-summary">—</p>
+</section>
+
+<footer>
+  Phase 0: pydantic domain models, grid generator and parameter store. No solver, no pressure
+  model, no persistence. Boundaries here are synthesised from the dimensions you type and are
+  never a survey.
+</footer>
+
+<div id="tooltip"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const NUM_IDS = ["length_m","width_m","field_azimuth_deg","implement_width_m",
+  "requested_block_size_m","headland_multiple","min_plantable_fraction","season_year"];
+const state = {snap_policy:"nearest", layout:"trap_edge_bands_core"};
+let latest = null, selected = null;
+
+/* The intake hands off here with the field it settled on in the query string. Only the
+   location rides along as a hidden value — everything else lands in a control the grower
+   can then move. */
+const place = {lon: 75.85, lat: 30.90};
+(function fromQuery(){
+  const q = new URLSearchParams(location.search);
+  if (![...q.keys()].length) return;
+  if (q.has("lon")) place.lon = parseFloat(q.get("lon"));
+  if (q.has("lat")) place.lat = parseFloat(q.get("lat"));
+  for (const id of [...NUM_IDS, "field_name"]) if (q.has(id)) $(id).value = q.get(id);
+  if (q.has("include_track")) $("include_track").checked = q.get("include_track") !== "0";
+  if (q.has("layout")){
+    state.layout = q.get("layout");
+    $("layout").querySelectorAll("button").forEach(b =>
+      b.setAttribute("aria-pressed", b.dataset.v === state.layout));
+  }
+})();
+
+function payload(){
+  const p = {field_name:$("field_name").value, include_track:$("include_track").checked,
+             snap_policy:state.snap_policy, layout:state.layout,
+             lon:place.lon, lat:place.lat};
+  for (const id of NUM_IDS) p[id] = parseFloat($(id).value);
+  return p;
+}
+
+/* ---------- controls ---------- */
+function syncLabels(){
+  $("v-az").textContent   = $("field_azimuth_deg").value + "°";
+  $("v-blk").textContent  = $("requested_block_size_m").value + " m";
+  $("v-head").textContent = parseFloat($("headland_multiple").value).toFixed(1) + "×";
+  $("v-min").textContent  = Math.round($("min_plantable_fraction").value * 100) + "%";
+}
+function group(el, key){
+  el.addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    [...el.querySelectorAll("button")].forEach(x => x.setAttribute("aria-pressed", x === b));
+    state[key] = b.dataset.v; refresh();
+  });
+}
+group($("snap_policy"), "snap_policy");
+group($("layout"), "layout");
+
+let timer = null;
+function refresh(){ clearTimeout(timer); timer = setTimeout(fetchPlate, 90); }
+for (const id of [...NUM_IDS, "field_name", "include_track"]){
+  $(id).addEventListener("input", () => { syncLabels(); refresh(); });
+}
+
+const PRESETS = {
+  punjab: {length_m:600, width_m:400, field_azimuth_deg:20, requested_block_size_m:50,
+           implement_width_m:1.8, headland_multiple:2, include_track:true},
+  strip:  {length_m:900, width_m:90, field_azimuth_deg:105, requested_block_size_m:45,
+           implement_width_m:2.4, headland_multiple:2, include_track:false},
+  squeeze:{length_m:600, width_m:150, field_azimuth_deg:20, requested_block_size_m:50,
+           implement_width_m:12, headland_multiple:8, include_track:false},
+};
+document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => {
+  const p = PRESETS[b.dataset.preset];
+  for (const [k, v] of Object.entries(p)){
+    if (k === "include_track") $(k).checked = v; else $(k).value = v;
+  }
+  syncLabels(); refresh();
+}));
+
+/* ---------- drawing ---------- */
+const SVG = "http://www.w3.org/2000/svg";
+function el(name, attrs){
+  const n = document.createElementNS(SVG, name);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  return n;
+}
+const ringPath = (rings) => rings.map(r =>
+  "M" + r.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join("L") + "Z").join(" ");
+
+const PATTERN_LABEL = {solid_tomato:"solid tomato", tomato_garlic_4_2:"tomato : garlic 4-2",
+  tomato_marigold_trap:"marigold trap perimeter"};
+const GARLIC_REPEAT_M = 6.6, GARLIC_BAND_M = 0.6, TRAP_DEPTH_M = 3.0;
+
+/* Everything on the plate is drawn at the size it is on the ground: the garlic bands are
+   0.6 m in a 6.6 m repeat, the marigold rim is 3 m deep. Zoom in and the drawing stays
+   true — a schematic that exaggerated either one would misstate what the block holds. */
+function drawPlate(d){
+  const pad = 14, w = d.extent.width_m, h = d.extent.height_m;
+  const svg = $("plate");
+  svg.setAttribute("viewBox", `${-pad} ${-pad} ${w + pad * 2} ${h + pad * 2}`);
+  [...svg.querySelectorAll("g,path,text")].forEach(n => n.remove());
+  [...svg.querySelectorAll("defs .gen")].forEach(n => n.remove());
+
+  const defs = svg.querySelector("defs");
+  const bands = el("pattern", {id: "p-garlic", class: "gen", width: GARLIC_REPEAT_M,
+    height: GARLIC_REPEAT_M, patternUnits: "userSpaceOnUse",
+    patternTransform: `rotate(${d.grid.azimuth_deg})`});
+  bands.appendChild(el("rect", {width: GARLIC_REPEAT_M, height: GARLIC_BAND_M,
+    fill: d.crop_colours.garlic}));
+  defs.appendChild(bands);
+
+  const g = el("g", {transform: `translate(0,${h}) scale(1,-1)`});
+  g.appendChild(el("path", {d: ringPath(d.draw.boundary), fill: "#DFD9C6", stroke: "none"}));
+
+  const box = svg.getBoundingClientRect();
+  const scale = Math.min((box.width || 700) / (w + pad * 2), (box.height || 500) / (h + pad * 2));
+  const labels = el("g", {});
+  const showCodes = d.grid.block_size_m * scale > 40;
+  const overlay = el("g", {class: "overlay"});
+
+  d.grid.blocks.forEach((b) => {
+    const path = ringPath(b.rings);
+    const p = el("path", {d: path, fill: d.crop_colours.tomato,
+      "fill-opacity": b.is_partial ? 0.16 : 0.26,
+      class: "blk" + (b.code === selected ? " sel" : "") + (b.is_partial ? " partial" : "")});
+    p.style.animationDelay = Math.min(b.col * 14 + b.row * 6, 700) + "ms";
+    p.addEventListener("pointerenter", (e) => showTip(e, b, d));
+    p.addEventListener("pointermove", moveTip);
+    p.addEventListener("pointerleave", hideTip);
+    p.addEventListener("click", () => { selected = b.code; drawPlate(latest); showBlock(b, d); });
+    g.appendChild(p);
+
+    if (b.pattern_code === "tomato_garlic_4_2"){
+      overlay.appendChild(el("path", {d: path, fill: "url(#p-garlic)", stroke: "none",
+        "fill-opacity": b.is_partial ? 0.6 : 0.95}));
+    }
+    if (b.pattern_code === "tomato_marigold_trap"){
+      const clip = el("clipPath", {id: "c-" + b.code, class: "gen"});
+      clip.appendChild(el("path", {d: path}));
+      defs.appendChild(clip);
+      overlay.appendChild(el("path", {d: path, fill: "none", stroke: d.crop_colours.marigold,
+        "stroke-width": TRAP_DEPTH_M * 2, "stroke-opacity": b.is_partial ? 0.6 : 0.95,
+        "clip-path": `url(#c-${b.code})`}));
+    }
+
+    if (showCodes){
+      const ring = b.rings[0];
+      const c = ring.reduce((a, [x, y]) => [a[0] + x / ring.length, a[1] + y / ring.length], [0, 0]);
+      const t = el("text", {x: c[0].toFixed(1), y: (h - c[1]).toFixed(1), class: "blk-code",
+        "font-size": Math.max(6, d.grid.block_size_m * 0.2)});
+      t.textContent = b.code;
+      labels.appendChild(t);
+    }
+  });
+
+  g.appendChild(overlay);
+  d.draw.exclusions.forEach(r => g.appendChild(el("path", {d: ringPath([r]), class: "excl"})));
+  d.draw.plantable.forEach(r => g.appendChild(el("path", {d: ringPath([r]), class: "plantable"})));
+  d.draw.boundary.forEach(r => g.appendChild(el("path", {d: ringPath([r]), class: "boundary"})));
+  svg.appendChild(g);
+  svg.appendChild(labels);
+}
+
+function legend(d){
+  const used = new Set(d.grid.blocks.map(b => b.pattern_code));
+  const c = d.crop_colours;
+  const bits = [`<span><i style="background:${c.tomato};opacity:.4"></i>tomato, every block</span>`];
+  if (used.has("tomato_garlic_4_2"))
+    bits.push(`<span><i style="background:repeating-linear-gradient(180deg,${c.garlic} 0 2px,transparent 2px 5px)"></i>garlic bands, 0.6 m in 6.6 m</span>`);
+  if (used.has("tomato_marigold_trap"))
+    bits.push(`<span><i style="background:${c.sheet || '#DFD9C6'};box-shadow:inset 0 0 0 3px ${c.marigold}"></i>marigold rim, 3 m deep</span>`);
+  bits.push('<span><i style="background:#DFD9C6;border-style:dashed"></i>headland, outside the grid</span>');
+  if (d.draw.exclusions.length)
+    bits.push('<span><i style="background:#DFD9C6"></i>track and its standoff</span>');
+  bits.push('<span><i style="border-style:dashed;background:#EDE8DA"></i>block trimmed by an edge</span>');
+  $("legend").innerHTML = bits.join("");
+  $("legend").title = [...used].map(x => PATTERN_LABEL[x]).join(" · ");
+}
+
+/* ---------- tooltip ---------- */
+function showTip(e, b, d){
+  const t = $("tooltip");
+  t.innerHTML = `<b>${b.code}</b><br>${PATTERN_LABEL[b.pattern_code]}<br>` +
+    `${b.plantable_ha.toFixed(2)} ha plantable` +
+    (b.is_partial ? `<br>${Math.round(b.plantable_fraction * 100)}% of a full block` : "");
+  t.classList.add("on"); moveTip(e);
+}
+function moveTip(e){
+  const t = $("tooltip");
+  t.style.left = Math.min(e.clientX + 14, innerWidth - 280) + "px";
+  t.style.top = (e.clientY + 16) + "px";
+}
+const hideTip = () => $("tooltip").classList.remove("on");
+
+/* ---------- read-out ---------- */
+const rows = (pairs) => pairs.map(([k, v]) =>
+  `<div><span>${k}</span><b>${v}</b></div>`).join("");
+
+function showBlock(b, d){
+  $("block-rows").innerHTML = rows([
+    ["code", b.code],
+    ["row · column", `${b.row} · ${b.col}`],
+    ["pattern", PATTERN_LABEL[b.pattern_code]],
+    ["plantable", b.plantable_ha.toFixed(3) + " ha"],
+    ["of a full block", Math.round(b.plantable_fraction * 100) + "%"],
+  ]);
+}
+
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const KIND_LABEL = {land_prep:"Land prep", plant:"Plant", irrigate:"Irrigate", scout:"Scout",
+  expected_intervention:"Treat?", harvest:"Harvest", remove_companion:"Lift companion",
+  destroy_trap_crop:"Destroy trap"};
+
+function drawPlan(d){
+  const dates = d.plan.flatMap(i => [Date.parse(i.window_start), Date.parse(i.window_end)]);
+  const t0 = Math.min(...dates), t1 = Math.max(...dates), span = Math.max(t1 - t0, 1);
+
+  /* Month ticks come from the plan's own span, so a plan that starts with an autumn
+     companion sowing shows the autumn rather than being squeezed into a calendar year. */
+  const ticks = [];
+  const cursor = new Date(t0); cursor.setDate(1);
+  while (cursor.getTime() <= t1){
+    const start = Math.max(cursor.getTime(), t0);
+    const next = new Date(cursor); next.setMonth(next.getMonth() + 1);
+    const end = Math.min(next.getTime(), t1);
+    ticks.push({label: MONTHS[cursor.getMonth()], year: cursor.getFullYear(),
+      flex: Math.max(end - start, 0) / span});
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  $("months").innerHTML = ticks.map(t =>
+    `<span style="flex:${t.flex}" title="${t.label} ${t.year}">${t.label[0]}</span>`).join("");
+  $("plan").innerHTML = d.plan.map((i, n) => {
+    const l = (Date.parse(i.window_start) - t0) / span * 100;
+    const w = Math.max((Date.parse(i.window_end) - Date.parse(i.window_start)) / span * 100, 1.2);
+    const advisory = i.kind === "expected_intervention";
+    return `<div class="act${advisory ? " advice" : ""}" data-n="${n}">
+      <button aria-expanded="false">
+        <div class="row"><div class="name">${KIND_LABEL[i.kind] || i.kind}</div>
+          <div class="track"><div class="win" style="left:${l}%;width:${w}%"></div></div></div>
+        <div class="when">${i.window_start} → ${i.window_end} · ${i.description}</div>
+        <div class="why">${i.rationale}${i.threshold_note ?
+          `<br><br><b>Threshold:</b> ${i.threshold_note}` : ""}${i.depends_on_parameter_keys.length ?
+          `<br><br><b>From:</b> ${i.depends_on_parameter_keys.join(", ")}` : ""}</div>
+      </button></div>`;
+  }).join("");
+  $("plan").querySelectorAll(".act").forEach(a => a.querySelector("button")
+    .addEventListener("click", () => {
+      const open = a.classList.toggle("open");
+      a.querySelector("button").setAttribute("aria-expanded", open);
+    }));
+}
+
+function render(d){
+  latest = d;
+  $("plate-title").textContent = d.field.name;
+  $("plate-meta").textContent =
+    `${d.grid.block_count} blocks · ${d.grid.block_size_m.toFixed(1)} m · ` +
+    `bearing ${d.grid.azimuth_deg.toFixed(0)}° (${d.grid.azimuth_source.replace(/_/g, " ")})`;
+  $("sheet-region").textContent = d.field.region_code;
+  $("gen-ver").textContent = d.provenance.grid_generator_version;
+  $("grid-hash").textContent = d.provenance.grid_content_hash;
+
+  drawPlate(d); legend(d);
+
+  $("grid-rows").innerHTML = rows([
+    ["inside the boundary", d.grid.gross_area_ha.toFixed(2) + " ha"],
+    ["plantable", d.grid.plantable_area_ha.toFixed(2) + " ha"],
+    ["lost to headland and track", d.grid.lost_to_headland_and_exclusion_ha.toFixed(2) + " ha"],
+    ["headland depth", d.grid.headland_depth_m.toFixed(1) + " m"],
+    ["blocks", d.grid.block_count],
+    ["block edge", `${d.grid.block_size_m.toFixed(1)} m (${d.grid.passes_per_block} passes)`],
+    ["blocks trimmed by an edge", d.grid.partial_block_count],
+    ["slivers dropped", d.grid.dropped_sliver_count],
+    ["working CRS", "EPSG:" + d.field.working_crs_epsg],
+  ]);
+  $("snap-note").textContent = d.grid.snap_note || "The block size landed on a whole number of passes exactly.";
+
+  const areas = d.layout.area_ha_by_crop;
+  const total = Object.values(areas).reduce((a, b) => a + b, 0) || 1;
+  $("areas").innerHTML = Object.entries(areas).map(([crop, ha]) => `
+    <div class="bar"><div class="lbl"><span>${crop}</span>
+      <span>${ha.toFixed(2)} ha · ${Math.round(ha / total * 100)}%</span></div>
+      <div class="track"><div class="fill" style="width:${ha / total * 100}%;
+        background:${d.crop_colours[crop]}"></div></div></div>`).join("");
+  $("layout-note").textContent = d.layout.note +
+    " This is a rule applied to blocks, not an optimisation — Phase 0 has no solver.";
+
+  drawPlan(d);
+
+  $("prov-rows").innerHTML = rows([
+    ["parameter set", "v" + d.provenance.parameter_set_version],
+    ["set hash", d.provenance.parameter_set_hash],
+    ["entries on file", d.provenance.record_count + d.provenance.interaction_count],
+    ["of those, provisional", d.provenance.provisional_count],
+    ["grid generator", "v" + d.provenance.grid_generator_version],
+    ["grid hash", d.provenance.grid_content_hash],
+    ["boundary", d.field.boundary_source.replace(/_/g, " ")],
+  ]);
+  $("prov-keys").innerHTML = d.provenance.used_keys.length
+    ? "Dated windows lean on: " + d.provenance.used_keys.map(k => `<code>${k}</code>`).join(", ")
+      + ". Both provisional, so every date above is a placeholder for a sourced one."
+    : "No parameter feeds a date in this plan.";
+
+  $("stamp").classList.remove("err");
+  $("stamp").querySelector(".eyebrow").textContent =
+    `Provisional · parameter set v${d.provenance.parameter_set_version} · ${d.provenance.provisional_count} of ${d.provenance.record_count + d.provenance.interaction_count} entries unsourced`;
+  $("stamp-body").textContent = "Applications saved: not computed. " + d.objective.why_absent;
+
+  const b = d.grid.blocks.find(x => x.code === selected);
+  if (b) showBlock(b, d);
+}
+
+function renderError(msg){
+  $("stamp").classList.add("err");
+  $("stamp").querySelector(".eyebrow").textContent = "This grid cannot be built";
+  $("stamp-body").textContent = msg;
+}
+
+async function fetchPlate(){
+  try{
+    const res = await fetch("/api/plate", {method: "POST",
+      headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload())});
+    const data = await res.json();
+    if (!res.ok) return renderError(data.error || "unknown failure");
+    render(data);
+  }catch(err){ renderError(String(err)); }
+}
+
+/* ---------- parameter register ---------- */
+$("reg-toggle").addEventListener("click", async () => {
+  const body = $("reg-body"), open = body.hasAttribute("hidden");
+  body.toggleAttribute("hidden", !open);
+  $("reg-toggle").setAttribute("aria-expanded", open);
+  $("reg-toggle").textContent = open ? "Hide the register" : "Show the register";
+  if (open && !body.dataset.loaded) await loadRegister(body);
+});
+
+async function loadRegister(body){
+  const d = await (await fetch("/api/parameters")).json();
+  const tag = (p) => p ? '<span class="tag">provisional</span>'
+                       : '<span class="tag ok">published</span>';
+  body.innerHTML = `
+    <table><thead><tr><th>Parameter</th><th>Value</th><th>Status</th>
+      <th>Why it is not yet a source</th></tr></thead><tbody>
+    ${d.records.map(r => `<tr><td class="k">${r.key}</td>
+      <td class="v">${r.value}${r.units ? " " + r.units : ""}</td>
+      <td>${tag(r.is_provisional)}</td><td class="why">${r.rationale}</td></tr>`).join("")}
+    ${d.interactions.map(i => `<tr><td class="k">${i.key}</td>
+      <td class="v">${i.effect_size} ${i.effect_measure}</td>
+      <td>${tag(i.is_provisional)}</td><td class="why">${i.rationale}</td></tr>`).join("")}
+    </tbody></table>`;
+  body.dataset.loaded = "1";
+  $("reg-title").textContent = `Set v${d.version} · hash ${d.hash}`;
+  $("reg-summary").textContent = `${d.records.length} parameters and ${d.interactions.length} ` +
+    `crop interactions on file. Every one is provisional: the store refuses to mark a value ` +
+    `published without a citation, so nothing here can be quietly promoted by editing a number.`;
+}
+
+syncLabels();
+fetchPlate();
+addEventListener("resize", () => { if (latest) drawPlate(latest); });
+</script>
+</body>
+</html>

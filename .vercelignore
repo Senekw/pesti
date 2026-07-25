@@ -1,0 +1,7 @@
+.venv
+.pytest_cache
+out
+tests
+scripts
+docs
+uv.lock

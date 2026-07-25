@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intercrop — intake</title>
+<style>
+:root{
+  --table:#232620;--sheet:#E8E3D3;--sheet-2:#DFD9C6;--ink:#1B1D18;--ink-soft:#5C5F52;
+  --rule:#C6C0AC;--madder:#B4472C;--olive:#7C8B4E;--ochre:#D69A2C;--stamp:#A32E1F;
+  --display:"Avenir Next Condensed","Avenir Next","Helvetica Neue",sans-serif;
+  --prose:"Iowan Old Style","Charter",Palatino,Georgia,serif;
+  --data:"SF Mono",Menlo,ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--table);color:var(--ink)}
+body{font-family:var(--prose);font-size:15px;line-height:1.55;display:flex;
+  flex-direction:column;-webkit-font-smoothing:antialiased}
+h1,h2{font-family:var(--display);font-weight:600;margin:0}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
+.eyebrow{font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink-soft)}
+
+header{padding:18px 26px;color:var(--sheet);display:flex;justify-content:space-between;
+  align-items:baseline;gap:20px;max-width:1000px;margin:0 auto;width:100%}
+header h1{font-size:19px;text-transform:uppercase;letter-spacing:.05em}
+header h1 span{color:var(--ochre)}
+header a{color:#B9B7A6;font-family:var(--data);font-size:11.5px;text-decoration:none;
+  border-bottom:1px solid #4A4D42}
+header a:hover{color:var(--sheet)}
+
+main{flex:1;width:100%;max-width:1000px;margin:0 auto;background:var(--sheet);
+  box-shadow:0 24px 60px rgba(0,0,0,.45);display:flex;flex-direction:column;min-height:0}
+#log{flex:1;overflow-y:auto;padding:30px 34px 10px;scroll-behavior:smooth}
+
+.turn{margin:0 0 22px;max-width:640px}
+.turn.you{margin-left:auto;text-align:right}
+.who{font-family:var(--display);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-soft);margin-bottom:5px}
+.turn.you .bubble{background:var(--ink);color:var(--sheet);display:inline-block;
+  padding:9px 14px;text-align:left}
+.bubble p{margin:0 0 10px}
+.bubble p:last-child{margin:0}
+@media (prefers-reduced-motion:no-preference){
+  .turn{animation:rise .3s ease-out both}
+}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* what it claims to have understood */
+.card{border:1px solid var(--rule);background:var(--sheet-2);padding:12px 14px;margin:12px 0 0}
+.card .eyebrow{margin-bottom:8px}
+.card .line{display:flex;gap:10px;font-size:13.5px;padding:4px 0;
+  border-bottom:1px dotted var(--rule)}
+.card .line:last-child{border:0}
+.card .line b{font-family:var(--data);font-size:12px;font-weight:400;flex:none;width:118px;
+  color:var(--ink-soft)}
+.card .line q{quotes:none;color:var(--ink-soft);font-style:italic}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 0}
+.chips button{background:none;border:1px solid var(--rule);padding:5px 11px;cursor:pointer;
+  font-family:var(--data);font-size:12px;color:var(--ink-soft)}
+.chips button:hover{border-color:var(--ink);color:var(--ink);background:var(--sheet-2)}
+
+/* thinking */
+.dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--ink-soft);
+  margin-right:4px;animation:blink 1.1s infinite}
+.dots span:nth-child(2){animation-delay:.18s}
+.dots span:nth-child(3){animation-delay:.36s}
+@keyframes blink{0%,60%,100%{opacity:.25}30%{opacity:1}}
+
+/* the build-out */
+.steps{margin:12px 0 0;font-family:var(--data);font-size:12.5px}
+.steps div{padding:3px 0;color:var(--ink-soft);opacity:.35}
+.steps div.on{opacity:1;color:var(--ink)}
+.steps div.on::before{content:"▸ ";color:var(--madder)}
+.steps div.done::before{content:"✓ ";color:var(--olive)}
+.steps div.done{opacity:1}
+
+.stamp{border:2px solid var(--stamp);padding:11px 13px;margin:14px 0 0;transform:rotate(-.4deg)}
+.stamp .eyebrow{color:var(--stamp)}
+.stamp p{margin:5px 0 0;font-size:13.5px}
+
+/* composer */
+form{border-top:1px solid var(--rule);padding:14px 34px 18px;background:var(--sheet)}
+.composer{display:flex;gap:10px;align-items:flex-end;border-bottom:1px solid var(--ink);
+  padding-bottom:7px}
+.composer textarea{flex:1;border:0;background:none;resize:none;font-family:var(--prose);
+  font-size:15.5px;line-height:1.5;padding:4px 0;max-height:120px}
+.composer textarea:focus{outline:none}
+.composer button{background:var(--ink);color:var(--sheet);border:0;padding:8px 16px;
+  cursor:pointer;font-family:var(--display);font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase}
+.composer button:disabled{opacity:.35;cursor:not-allowed}
+form .hint{font-size:11.5px;color:var(--ink-soft);margin:8px 0 0;font-family:var(--data)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Intercrop <span>intake</span></h1>
+  <a href="/sheet">Skip to the field sheet →</a>
+</header>
+
+<main>
+  <div id="log"></div>
+  <form id="composer">
+    <div class="composer">
+      <textarea id="input" rows="1" placeholder="Describe your field…" autofocus></textarea>
+      <button type="submit" id="send">Send</button>
+    </div>
+    <p class="hint">Scripted demo — the replies below are canned, and the field it plans is
+      always the Ludhiana tomato and garlic example.</p>
+  </form>
+</main>
+
+<script>
+const log = document.getElementById("log");
+const input = document.getElementById("input");
+const form = document.getElementById("composer");
+const send = document.getElementById("send");
+
+/* A scripted intake. Nothing here reads what the grower typed — each send advances the
+   script by one step, and step 3 hands off to the field sheet with the worked example's
+   parameters. Replacing this with a real intake means replacing this array. */
+const SCRIPT = [
+  {
+    text: ["Reading that back before I do anything with it — correct me on any line and I "
+         + "will re-plan rather than paper over it."],
+    card: {
+      title: "What I have you saying",
+      lines: [
+        ["field", "6 acres near Ludhiana, Punjab (IN-PB)"],
+        ["shape", "no boundary given, so a 3:2 rectangle stands in for it"],
+        ["main crop", "tomato"],
+        ["season", "2026, transplant in March"],
+      ],
+    },
+    ask: "How wide is the widest thing that has to drive across it — usually the sprayer? "
+       + "It sets the block size and the headland, so a grid that ignores it is a grid you "
+       + "cannot drive.",
+    chips: ["1.8 m sprayer", "2.4 m boom", "12 m boom"],
+  },
+  {
+    text: ["Noted. At 1.8 m a 50 m block is 27.8 passes wide, so I will snap it to 50.4 m — "
+         + "28 whole passes — rather than leave a part-width pass in every block.",
+           "One thing left that changes the layout more than anything else I could ask you."],
+    card: {
+      title: "Still open",
+      lines: [
+        ["companion", "would you interplant, and is there a buyer for it?"],
+        ["spray target", "what are you trying to get down to?"],
+      ],
+    },
+    ask: "Garlic between the tomato rows is the classic pairing here, and marigold on the "
+       + "field edge is the other. Would you plant either?",
+    chips: ["Garlic, but I have no buyer for it", "Garlic and marigold", "Tomato only"],
+  },
+  {
+    text: ["Then garlic goes in the interior blocks as a companion at minimum area, since "
+         + "with no buyer its area is a pure cost, and marigold takes the edge blocks as a "
+         + "trap crop."],
+    build: [
+      "Choosing the working CRS from the boundary centroid — UTM 43N, EPSG:32643",
+      "Rotating to the grid frame so blocks run along the long axis",
+      "Cutting a 3.6 m headland before tessellating, not after",
+      "Snapping the block edge to 28 passes at 1.8 m",
+      "Assigning row patterns block by block",
+      "Dating the season against the parameter set",
+    ],
+    handoff: true,
+  },
+];
+
+let step = 0;
+
+function el(html){
+  const d = document.createElement("div");
+  d.innerHTML = html.trim();
+  return d.firstElementChild;
+}
+const scroll = () => requestAnimationFrame(() => { log.scrollTop = log.scrollHeight; });
+const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+function you(text){
+  log.appendChild(el(`<div class="turn you"><div class="who">You</div>
+    <div class="bubble">${escape(text)}</div></div>`));
+  scroll();
+}
+function escape(s){
+  return s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+}
+
+function thinking(){
+  const node = el(`<div class="turn"><div class="who">Planner</div>
+    <div class="bubble dots"><span></span><span></span><span></span></div></div>`);
+  log.appendChild(node); scroll();
+  return node;
+}
+
+async function planner(entry){
+  const node = thinking();
+  await wait(750 + Math.random() * 500);
+  node.innerHTML = `<div class="who">Planner</div><div class="bubble"></div>`;
+  const bubble = node.querySelector(".bubble");
+
+  for (const line of entry.text || []){
+    bubble.appendChild(el(`<p>${line}</p>`));
+    scroll();
+    await wait(420);
+  }
+
+  if (entry.card){
+    bubble.appendChild(el(`<div class="card"><div class="eyebrow">${entry.card.title}</div>
+      ${entry.card.lines.map(([k, v]) => `<div class="line"><b>${k}</b><q>${v}</q></div>`).join("")}
+    </div>`));
+    scroll();
+    await wait(400);
+  }
+
+  if (entry.ask) bubble.appendChild(el(`<p>${entry.ask}</p>`));
+  if (entry.chips){
+    const chips = el(`<div class="chips">${entry.chips
+      .map(c => `<button type="button">${c}</button>`).join("")}</div>`);
+    chips.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+      input.value = b.textContent; form.requestSubmit();
+    }));
+    bubble.appendChild(chips);
+  }
+  scroll();
+
+  if (entry.build){
+    const steps = el(`<div class="steps">${entry.build
+      .map(s => `<div>${s}</div>`).join("")}</div>`);
+    bubble.appendChild(steps);
+    const nodes = [...steps.children];
+    for (const n of nodes){
+      n.classList.add("on"); scroll();
+      await wait(430);
+      n.classList.remove("on"); n.classList.add("done");
+    }
+    bubble.appendChild(el(`<div class="stamp">
+      <div class="eyebrow">Provisional · not agronomic advice</div>
+      <p>The layout is a rule applied to blocks, not an optimisation — there is no solver
+      yet. And I am not going to tell you how many sprays this saves: every interaction
+      coefficient on file is unsourced, so that number would be invented.</p></div>`));
+    bubble.appendChild(el(`<p style="margin-top:12px">Opening the field sheet…</p>`));
+    scroll();
+    await wait(1100);
+    location.href = "/sheet?" + new URLSearchParams({
+      field_name: "Ludhiana tomato", lon: 75.85, lat: 30.90,
+      length_m: 600, width_m: 400, field_azimuth_deg: 20,
+      implement_width_m: 1.8, requested_block_size_m: 50, headland_multiple: 2,
+      season_year: 2026, layout: "trap_edge_bands_core", include_track: 1,
+    });
+  }
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (!text || step >= SCRIPT.length) return;
+  you(text);
+  input.value = ""; input.style.height = "auto";
+  send.disabled = true;
+  await planner(SCRIPT[step++]);
+  send.disabled = step >= SCRIPT.length;
+  input.focus();
+});
+
+input.addEventListener("input", () => {
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, 120) + "px";
+});
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); form.requestSubmit(); }
+});
+
+/* opening turn */
+(async () => {
+  await wait(300);
+  await planner({
+    text: ["Tell me about the field in your own words — where it is, how big, what you grow, "
+         + "and what has to drive across it.",
+           "I will ask for the few things still missing that actually move the answer, and "
+         + "nothing that does not."],
+    chips: ["I have 6 acres of tomatoes near Ludhiana",
+            "12 ha of chilli in Nashik, flood irrigated"],
+    ask: "",
+  });
+})();
+</script>
+</body>
+</html>

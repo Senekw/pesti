@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intercrop planner</title>
+<style>
+:root{
+  --table:#232620;--sheet:#E8E3D3;--sheet-2:#DFD9C6;--ink:#1B1D18;--ink-soft:#5C5F52;
+  --rule:#C6C0AC;--madder:#B4472C;--olive:#7C8B4E;--ochre:#D69A2C;--stamp:#A32E1F;
+  --display:"Avenir Next Condensed","Avenir Next","Helvetica Neue",sans-serif;
+  --prose:"Iowan Old Style","Charter",Palatino,Georgia,serif;
+  --data:"SF Mono",Menlo,ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--table);color:var(--sheet)}
+body{font-family:var(--prose);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;letter-spacing:.01em}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ochre);outline-offset:3px}
+.eyebrow{font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:#8C8F7F}
+.wrap{max-width:1180px;margin:0 auto;padding:0 30px}
+
+nav{display:flex;justify-content:space-between;align-items:baseline;padding:22px 0;
+  font-family:var(--data);font-size:12px;color:#8C8F7F}
+nav b{font-family:var(--display);font-size:16px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--sheet);font-weight:600}
+nav b i{font-style:normal;color:var(--ochre)}
+nav a{text-decoration:none;border-bottom:1px solid #4A4D42}
+nav a:hover{color:var(--sheet)}
+
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:54px;
+  align-items:center;padding:44px 0 74px}
+.hero h1{font-size:clamp(40px,6.4vw,78px);line-height:.96;text-transform:uppercase}
+.hero h1 em{font-style:normal;color:var(--ochre)}
+.hero p.lead{font-size:19px;color:#CFCCBE;max-width:46ch;margin:22px 0 0}
+.hero p.sub{font-size:15px;color:#8C8F7F;max-width:52ch;margin:14px 0 0}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin:30px 0 0}
+.cta a{font-family:var(--display);font-size:13px;letter-spacing:.14em;text-transform:uppercase;
+  padding:13px 24px;text-decoration:none;border:1px solid var(--sheet)}
+.cta a.primary{background:var(--ochre);border-color:var(--ochre);color:var(--ink)}
+.cta a.primary:hover{background:#E5A93A}
+.cta a.ghost:hover{background:rgba(232,227,211,.1)}
+
+/* the plate, drawn live */
+.plate-frame{background:var(--sheet);padding:16px 16px 12px;box-shadow:0 26px 60px rgba(0,0,0,.5)}
+.plate-frame .cap{display:flex;justify-content:space-between;font-family:var(--data);
+  font-size:10.5px;color:var(--ink-soft);padding:0 2px 8px}
+#plate{display:block;width:100%;height:auto}
+.plate-frame .foot{font-family:var(--data);font-size:10.5px;color:var(--ink-soft);
+  padding:8px 2px 0;border-top:1px solid var(--rule);margin-top:8px}
+
+section.rules{border-top:1px solid #3A3D34;padding:52px 0 20px}
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:34px;
+  margin-top:26px}
+.rule h3{font-size:17px;color:var(--sheet);margin-bottom:8px}
+.rule p{font-size:14.5px;color:#A9A79A;margin:0}
+.rule .n{font-family:var(--data);font-size:11px;color:var(--madder);display:block;
+  margin-bottom:6px}
+
+section.refusal{padding:46px 0 64px}
+.refusal-box{border:2px solid var(--stamp);padding:24px 26px;max-width:780px}
+.refusal-box .eyebrow{color:var(--stamp)}
+.refusal-box p{margin:10px 0 0;font-size:16.5px;color:#CFCCBE}
+
+footer{border-top:1px solid #3A3D34;padding:22px 0 60px;font-family:var(--data);font-size:11.5px;
+  color:#71746A;display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;gap:34px;padding:20px 0 50px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav>
+    <b>Intercrop <i>planner</i></b>
+    <span>Phase 0 · grid generator, domain models, parameter store ·
+      <a href="/sheet">field sheet</a></span>
+  </nav>
+
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Fewer passes, planned on the ground you actually farm</div>
+      <h1>Lay a grid<br>you can<br><em>drive</em>.</h1>
+      <p class="lead">Describe your field in plain language. The planner tessellates it into
+        management blocks that match your machinery, fills them with an intercropping layout,
+        and hands back a dated season plan.</p>
+      <p class="sub">Blocks are whole implement passes wide. Headlands come out before
+        tessellation, not after. Every distance is measured in a metric CRS chosen once and
+        stored on the field — never in degrees.</p>
+      <div class="cta">
+        <a class="primary" href="/chat">Describe a field →</a>
+        <a class="ghost" href="/sheet">Open the field sheet</a>
+      </div>
+    </div>
+
+    <div class="plate-frame">
+      <div class="cap"><span id="cap-name">LUDHIANA TOMATO</span><span id="cap-meta">—</span></div>
+      <svg id="plate" viewBox="0 0 100 70" role="img"
+           aria-label="A field tessellated into management blocks"></svg>
+      <div class="foot" id="cap-foot">—</div>
+    </div>
+  </div>
+
+  <section class="rules">
+    <div class="eyebrow">What the code enforces rather than trusts</div>
+    <div class="rules-grid">
+      <div class="rule"><span class="n">01</span>
+        <h3>No unsourced agronomy</h3>
+        <p>Every efficacy figure and degree-day base lives in a versioned file with a citation
+           and a validity range. A missing parameter raises; there is no default-returning
+           lookup anywhere in the store.</p></div>
+      <div class="rule"><span class="n">02</span>
+        <h3>No constraint met by relaxing the model</h3>
+        <p>If the modelled application count exceeds your cap, the plan says so. A coefficient
+           asked to speak outside the envelope it was measured in raises rather than
+           extrapolating.</p></div>
+      <div class="rule"><span class="n">03</span>
+        <h3>Solving is free, committing is gated</h3>
+        <p>Re-solve as often as you like. Committing a plan of record funnels through one
+           approval check — one choke point, because a second code path is how a gate
+           eventually gets bypassed.</p></div>
+      <div class="rule"><span class="n">04</span>
+        <h3>Ingested text is data, never instruction</h3>
+        <p>Free text from uploaded files is fenced and labelled before it reaches a prompt, and
+           the fence token is escaped so a hostile note cannot close its own quoting.</p></div>
+    </div>
+  </section>
+
+  <section class="refusal">
+    <div class="refusal-box">
+      <div class="eyebrow">The number this demo will not show you</div>
+      <p>How many sprays an intercropped layout saves. There is no pressure model yet, and
+         every interaction coefficient on file is provisional and unsourced — so the honest
+         answer is that we cannot yet say, and a figure here would be invented.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Phase 0 · no solver, no pressure model, no persistence</span>
+    <span>Boundaries are synthesised from stated dimensions — never a survey</span>
+  </footer>
+</div>
+
+<script>
+/* The hero plate is the real generator's output, fetched on load: same endpoint the field
+   sheet uses, same worked example the intake hands off. */
+const SVGNS = "http://www.w3.org/2000/svg";
+const el = (n, a) => { const e = document.createElementNS(SVGNS, n);
+  for (const [k, v] of Object.entries(a)) e.setAttribute(k, v); return e; };
+const ringPath = (rings) => rings.map(r =>
+  "M" + r.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join("L") + "Z").join(" ");
+
+fetch("/api/plate", {method: "POST", headers: {"Content-Type": "application/json"},
+  body: JSON.stringify({field_name: "Ludhiana tomato", lon: 75.85, lat: 30.90,
+    length_m: 600, width_m: 400, field_azimuth_deg: 20, implement_width_m: 1.8,
+    requested_block_size_m: 50, headland_multiple: 2, season_year: 2026,
+    layout: "trap_edge_bands_core", include_track: true})})
+  .then(r => r.json()).then(draw).catch(() => {});
+
+function draw(d){
+  const pad = 12, w = d.extent.width_m, h = d.extent.height_m;
+  const svg = document.getElementById("plate");
+  svg.setAttribute("viewBox", `${-pad} ${-pad} ${w + pad * 2} ${h + pad * 2}`);
+
+  const defs = el("defs", {});
+  const bands = el("pattern", {id: "l-garlic", width: 6.6, height: 6.6,
+    patternUnits: "userSpaceOnUse", patternTransform: `rotate(${d.grid.azimuth_deg})`});
+  bands.appendChild(el("rect", {width: 6.6, height: 0.6, fill: d.crop_colours.garlic}));
+  defs.appendChild(bands);
+  svg.appendChild(defs);
+
+  const g = el("g", {transform: `translate(0,${h}) scale(1,-1)`});
+  g.appendChild(el("path", {d: ringPath(d.draw.boundary), fill: "#DFD9C6"}));
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  d.grid.blocks.forEach((b) => {
+    const path = ringPath(b.rings);
+    const p = el("path", {d: path, fill: d.crop_colours.tomato,
+      "fill-opacity": b.is_partial ? 0.16 : 0.26, stroke: "rgba(27,29,24,.5)",
+      "stroke-width": 0.6});
+    if (!reduce){
+      p.style.opacity = 0;
+      p.animate([{opacity: 0}, {opacity: 1}], {duration: 400, fill: "forwards",
+        delay: Math.min(b.col * 26 + b.row * 10, 1400)});
+    }
+    g.appendChild(p);
+
+    if (b.pattern_code === "tomato_garlic_4_2")
+      g.appendChild(el("path", {d: path, fill: "url(#l-garlic)"}));
+    if (b.pattern_code === "tomato_marigold_trap"){
+      const clip = el("clipPath", {id: "lc-" + b.code});
+      clip.appendChild(el("path", {d: path}));
+      defs.appendChild(clip);
+      g.appendChild(el("path", {d: path, fill: "none", stroke: d.crop_colours.marigold,
+        "stroke-width": 6, "clip-path": `url(#lc-${b.code})`}));
+    }
+  });
+
+  d.draw.exclusions.forEach(r => g.appendChild(el("path", {d: ringPath([r]),
+    fill: "#DFD9C6", stroke: "#5C5F52", "stroke-width": 0.8})));
+  d.draw.plantable.forEach(r => g.appendChild(el("path", {d: ringPath([r]), fill: "none",
+    stroke: "rgba(27,29,24,.45)", "stroke-width": 1, "stroke-dasharray": "7 5"})));
+  d.draw.boundary.forEach(r => g.appendChild(el("path", {d: ringPath([r]), fill: "none",
+    stroke: "#1B1D18", "stroke-width": 2})));
+  svg.appendChild(g);
+
+  document.getElementById("cap-meta").textContent =
+    `${d.grid.block_count} BLOCKS · ${d.grid.block_size_m.toFixed(1)} M`;
+  document.getElementById("cap-foot").textContent =
+    `${d.grid.gross_area_ha.toFixed(1)} ha gross, ${d.grid.plantable_area_ha.toFixed(1)} ha ` +
+    `plantable · ${d.grid.passes_per_block} passes at 1.8 m · EPSG:${d.field.working_crs_epsg}`;
+}
+</script>
+</body>
+</html>

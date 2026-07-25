@@ -14,19 +14,61 @@ and returns a field map plus a dated action plan.
 
 ## What exists
 
-Pydantic v2 domain models, the grid generator, and a versioned agronomic parameter store.
-No solver, no pressure model, no agent, no persistence.
+Pydantic v2 domain models, the grid generator, a versioned agronomic parameter store, and a
+web demo over the three of them. No solver, no pressure model, no agent, no persistence.
 
 ## Quick start
 
 ```bash
 uv sync --all-extras
 python -m pytest tests/ -q                 # 156 tests
+python web/server.py                       # the demo, on http://127.0.0.1:8765
 python scripts/render_grid_examples.py     # -> out/grid_*.png
 python scripts/block_size_sweep.py         # -> out/block_size_sweep.png
 ```
 
 Python 3.13. Not 3.14 — OR-Tools has no wheel for it yet.
+
+## The demo
+
+Three pages, served by `web/server.py` — standard library only, so there is nothing to
+install beyond the runtime dependencies and the deployed site runs the same handler.
+
+| Route | What it is |
+| --- | --- |
+| `/` | Landing page. The hero plate is drawn from a live `POST /api/plate`, not a picture. |
+| `/chat` | Intake conversation. **Scripted** — canned replies, no model call, and it always plans the Ludhiana tomato-and-garlic example. It hands off to the sheet through the query string. |
+| `/sheet` | The field sheet. Every control re-runs the real generator. |
+
+The sheet is the part with nothing faked in it. Move a control and `POST /api/plate` rebuilds
+the field, tessellates it, applies a row-pattern rule per block and re-dates the season:
+
+- **Blocks are drawn at true scale.** Garlic bands are 0.6 m in a 6.6 m repeat and the
+  marigold rim is 3 m deep, because a schematic that exaggerated either would misstate what
+  the block holds.
+- **Failures are shown, not swallowed.** Ask for a headland that consumes the field and the
+  generator's own explanation is stamped on the plate.
+- **No spray count.** The one number a grower most wants is the one the demo refuses to
+  print, and it says why: there is no pressure model, and every interaction coefficient on
+  file is provisional.
+
+`GET /api/parameters` backs the register at the bottom of the sheet: every entry, its status,
+and the reason it is not yet a source.
+
+## Deploying
+
+Pushing to `main` deploys, once the repository is imported into Vercel (**New Project → import
+this repo → Deploy**; the defaults are correct, there is nothing to configure).
+
+- [`api/index.py`](api/index.py) is the entry point — it re-exports the same
+  `BaseHTTPRequestHandler` the local server uses, so local and deployed behaviour cannot
+  drift.
+- [`vercel.json`](vercel.json) rewrites every path to that function and ships `src/`, `web/`
+  and `params/` alongside it. The parameter store is read from disk per request.
+- [`requirements.txt`](requirements.txt) mirrors `[project.dependencies]`. The solver and
+  plotting extras are not needed to serve the sheet.
+
+The function runs on Vercel's Python 3.12, which every language feature in `src/` predates.
 
 ## Four invariants the code enforces rather than trusts
 
@@ -65,6 +107,13 @@ src/intercrop/
   domain/             field, grid, crops, pests, interactions, spec, plan, governance
   grid/generator.py   tessellation, adjacency, distance matrix
   parameters/store.py versioned parameter set, hashing
+web/
+  server.py           routes and the JSON API, standard library only
+  service.py          browser request -> real domain objects -> drawable response
+  landing.html        landing page
+  chat.html           scripted intake
+  index.html          the field sheet
+api/index.py          Vercel entry point, re-exports web/server.py's handler
 params/               parameters.v0.1.0.toml
 docs/                 checkpoint, ERD
 scripts/              renders, block-size sweep

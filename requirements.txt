@@ -1,0 +1,6 @@
+# Runtime dependencies for the Vercel function. Mirrors [project.dependencies] in
+# pyproject.toml — the solver and plotting extras are not needed to serve the sheet.
+pydantic>=2.11
+shapely>=2.1
+pyproj>=3.7
+numpy>=2.2
